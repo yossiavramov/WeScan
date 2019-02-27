@@ -9,6 +9,12 @@
 import UIKit
 import AVFoundation
 
+protocol ScannerViewControllerDelegate : NSObjectProtocol {
+    func scannerViewControllerDidSelectToCancel(_ vc: ScannerViewController)
+    func scannerViewController(_ vc: ScannerViewController, didFailWithError error: Error)
+    func scannerViewController(_ vc: ScannerViewController, didCaptureImage image: UIImage, detectedRectangle: Quadrilateral?, quadrilateralViewBounds: CGSize)
+}
+
 /// The `ScannerViewController` offers an interface to give feedback to the user regarding quadrilaterals that are detected. It also gives the user the opportunity to capture an image with a detected rectangle.
 final class ScannerViewController: UIViewController {
     
@@ -25,6 +31,8 @@ final class ScannerViewController: UIViewController {
         view.autoresizingMask = []
         return view
     }()
+    
+    weak var delegate: ScannerViewControllerDelegate?
     
     public var overlayView: ScannerOverlayView? {
         didSet {
@@ -199,8 +207,8 @@ extension ScannerViewController : ScannerController {
     }
     
     func dismissImagePicker(cancelledByUser: Bool) {
-        if cancelledByUser, let imageScannerController = navigationController as? ImageScannerController {
-            imageScannerController.imageScannerDelegate?.imageScannerControllerDidCancel(imageScannerController)
+        if cancelledByUser {
+            delegate?.scannerViewControllerDidSelectToCancel(self)
         } else {
             presentingViewController?.dismiss(animated: true, completion: nil)
         }
@@ -221,55 +229,12 @@ extension ScannerViewController: RectangleDetectionDelegateProtocol {
         
         overlayView?.didFailedToCapturePicture(with: error)
         
-        guard let imageScannerController = navigationController as? ImageScannerController else { return }
-        imageScannerController.imageScannerDelegate?.imageScannerController(imageScannerController, didFailWithError: error)
+        delegate?.scannerViewController(self, didFailWithError: error)
     }
     
     func captureSessionManager(_ captureSessionManager: CaptureSessionManager, didCapturePicture picture: UIImage, withQuad quad: Quadrilateral?) {
-        
         overlayView?.didCapturePicture(picture: picture, withQuad: quad)
-        guard let imageScannerController = (navigationController as? ImageScannerController), !imageScannerController.allowsEditing else {
-            let editVC = EditScanViewController(image: picture, quad: quad)
-            navigationController?.pushViewController(editVC, animated: false)
-            return
-        }
-        
-        let finalImage: UIImage?
-        let enhancedImage: UIImage?
-        let scaledQuad = quad?.scale(quadView.bounds.size, picture.size)
-        if let scaledQuad = scaledQuad,
-            let ciImage = CIImage(image: picture) {
-            
-            var cartesianScaledQuad = scaledQuad.toCartesian(withHeight: picture.size.height)
-            cartesianScaledQuad.reorganize()
-            
-            let filteredImage = ciImage.applyingFilter("CIPerspectiveCorrection", parameters: [
-                "inputTopLeft": CIVector(cgPoint: cartesianScaledQuad.bottomLeft),
-                "inputTopRight": CIVector(cgPoint: cartesianScaledQuad.bottomRight),
-                "inputBottomLeft": CIVector(cgPoint: cartesianScaledQuad.topLeft),
-                "inputBottomRight": CIVector(cgPoint: cartesianScaledQuad.topRight)
-                ])
-            
-            enhancedImage = filteredImage.applyingAdaptiveThreshold()?.withFixedOrientation()
-            
-            var uiImage: UIImage!
-            
-            // Let's try to generate the CGImage from the CIImage before creating a UIImage.
-            if let cgImage = CIContext(options: nil).createCGImage(filteredImage, from: filteredImage.extent) {
-                uiImage = UIImage(cgImage: cgImage)
-            } else {
-                uiImage = UIImage(ciImage: filteredImage, scale: 1.0, orientation: .up)
-            }
-            
-            finalImage = uiImage.withFixedOrientation()
-        } else {
-            finalImage = nil
-            enhancedImage = nil
-        }
-        
-        let results = ImageScannerResults(originalImage: picture, scannedImage: finalImage, enhancedImage: enhancedImage, doesUserPreferEnhancedImage: false, detectedRectangle: scaledQuad)
-        
-        imageScannerController.imageScannerDelegate?.imageScannerController(imageScannerController, didFinishScanningWithResults: results)
+        delegate?.scannerViewController(self, didCaptureImage: picture, detectedRectangle: quad, quadrilateralViewBounds: quadView.bounds.size)
     }
     
     func captureSessionManager(_ captureSessionManager: CaptureSessionManager, didDetectQuad quad: Quadrilateral?, _ imageSize: CGSize) {
@@ -296,5 +261,4 @@ extension ScannerViewController: RectangleDetectionDelegateProtocol {
         
         quadView.drawQuadrilateral(quad: transformedQuad, animated: true)
     }
-    
 }

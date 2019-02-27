@@ -8,8 +8,14 @@
 
 import UIKit
 
+protocol ReviewViewControllerDelegate : NSObjectProtocol {
+    func reviewViewController(_ vc: ReviewViewController, didEndReviewWith results: ImageScannerResults)
+}
+
 /// The `ReviewViewController` offers an interface to review the image after it has been cropped and deskwed according to the passed in quadrilateral.
-final class ReviewViewController: UIViewController {
+public final class ReviewViewController: UIViewController {
+    
+    weak var delegate: ReviewViewControllerDelegate?
     
     private var rotationAngle = Measurement<UnitAngle>(value: 0, unit: .degrees)
     private var enhancedImageIsAvailable = false
@@ -58,7 +64,7 @@ final class ReviewViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
     
-    override func viewDidLoad() {
+    public override func viewDidLoad() {
         super.viewDidLoad()
 
         enhancedImageIsAvailable = results.enhancedImage != nil
@@ -71,7 +77,7 @@ final class ReviewViewController: UIViewController {
         navigationItem.rightBarButtonItem = doneButton
     }
     
-    override func viewWillAppear(_ animated: Bool) {
+    public override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(false, animated: true)
         
@@ -81,7 +87,7 @@ final class ReviewViewController: UIViewController {
         }
     }
     
-    override func viewWillDisappear(_ animated: Bool) {
+    public override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         navigationController?.setToolbarHidden(true, animated: true)
     }
@@ -148,12 +154,10 @@ final class ReviewViewController: UIViewController {
     }
     
     @objc private func finishScan() {
-        guard let imageScannerController = navigationController as? ImageScannerController else { return }
         var newResults = results
         newResults.scannedImage = results.scannedImage?.rotated(by: rotationAngle) ?? results.scannedImage
         newResults.enhancedImage = results.enhancedImage?.rotated(by: rotationAngle) ?? results.enhancedImage
         newResults.doesUserPreferEnhancedImage = isCurrentlyDisplayingEnhancedImage
-        imageScannerController.imageScannerDelegate?.imageScannerController(imageScannerController, didFinishScanningWithResults: newResults)
+        delegate?.reviewViewController(self, didEndReviewWith: newResults)
     }
-
 }

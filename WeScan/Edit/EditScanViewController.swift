@@ -9,8 +9,15 @@
 import UIKit
 import AVFoundation
 
+protocol EditScanViewControllerDelegate : NSObjectProtocol {
+    func editScanViewController(_ vc: EditScanViewController, didFailWithError error: Error)
+    func editScanViewController(_ vc: EditScanViewController, finishEditingWith results: ImageScannerResults)
+}
+
 /// The `EditScanViewController` offers an interface for the user to edit the detected quadrilateral.
 public final class EditScanViewController: UIViewController {
+    
+    weak var delegate: EditScanViewControllerDelegate?
     
     public lazy private(set) var imageView: UIImageView = {
         let imageView = UIImageView()
@@ -143,12 +150,8 @@ public final class EditScanViewController: UIViewController {
     // MARK: - Actions
     @objc func pushReviewController() {
         guard let quad = quadView.quad, let ciImage = CIImage(image: image) else {
-            
-            if let imageScannerController = navigationController as? ImageScannerController {
-                let error = ImageScannerControllerError.ciImageCreation
-                imageScannerController.imageScannerDelegate?.imageScannerController(imageScannerController, didFailWithError: error)
-            }
-            
+            let error = ImageScannerControllerError.ciImageCreation
+            delegate?.editScanViewController(self, didFailWithError: error)
             return
         }
         
@@ -179,9 +182,7 @@ public final class EditScanViewController: UIViewController {
         let finalImage = uiImage.withFixedOrientation()
         
         let results = ImageScannerResults(originalImage: image, scannedImage: finalImage, enhancedImage: enhancedImage, doesUserPreferEnhancedImage: false, detectedRectangle: scaledQuad)
-        let reviewViewController = ReviewViewController(results: results)
-        
-        navigationController?.pushViewController(reviewViewController, animated: true)
+        delegate?.editScanViewController(self, finishEditingWith: results)
     }
 
     private func displayQuad() {

@@ -40,7 +40,7 @@ public protocol ImageScannerControllerDelegate: NSObjectProtocol {
 /// 1. Uses the camera to capture an image with a rectangle that has been detected.
 /// 2. Edit the detected rectangle.
 /// 3. Review the cropped down version of the rectangle.
-public final class ImageScannerController: UINavigationController {
+public final class ImageScannerController: UINavigationController, ScannerViewControllerDelegate, EditScanViewControllerDelegate, ReviewViewControllerDelegate {
     
     /// The object that acts as the delegate of the `ImageScannerController`.
     public weak var imageScannerDelegate: ImageScannerControllerDelegate?
@@ -49,7 +49,9 @@ public final class ImageScannerController: UINavigationController {
     
     // MARK: - Life Cycle
     public required init(image: UIImage? = nil, delegate: ImageScannerControllerDelegate? = nil) {
-        super.init(rootViewController: ScannerViewController())
+        let scannerVC = ScannerViewController()
+        super.init(rootViewController: scannerVC)
+        scannerVC.delegate = self
         
         setNavigationBarHidden(true, animated: false)
         self.imageScannerDelegate = delegate
@@ -59,29 +61,40 @@ public final class ImageScannerController: UINavigationController {
             
             var detectedQuad: Quadrilateral?
             
-            // Whether or not we detect a quad, present the edit view controller after attempting to detect a quad.
-            // *** Vision *requires* a completion block to detect rectangles, but it's instant.
-            // *** When using Vision, we'll present the normal edit view controller first, then present the updated edit view controller later.
-            defer {
-                let editViewController = EditScanViewController(image: image, quad: detectedQuad, rotateImage: false)
+            guard let ciImage = CIImage(image: image) else {
+                let editViewController = EditScanViewController(image: image, quad: nil, rotateImage: false)
+                editViewController.delegate = self
                 setViewControllers([editViewController], animated: false)
+                return
             }
             
-            guard let ciImage = CIImage(image: image) else { return }
-            
             if #available(iOS 11.0, *) {
+                let vc = UIViewController(nibName: nil, bundle: nil)
+                vc.view.backgroundColor = UIColor.black
+                let activity = UIActivityIndicatorView(style: .whiteLarge)
+                activity.autoresizingMask = [.flexibleTopMargin, .flexibleLeftMargin, .flexibleRightMargin, .flexibleBottomMargin]
+                vc.view.addSubview(activity)
+                activity.center = CGPoint(x: vc.view.bounds.midX, y: vc.view.bounds.midY)
+                setViewControllers([vc], animated: false)
+                activity.startAnimating()
+                
                 // Use the VisionRectangleDetector on iOS 11 to attempt to find a rectangle from the initial image.
                 VisionRectangleDetector.rectangle(forImage: ciImage) { (quad) in
                     detectedQuad = quad
                     detectedQuad?.reorganize()
 
                     let editViewController = EditScanViewController(image: image, quad: detectedQuad, rotateImage: false)
+                    editViewController.delegate = self
                     self.setViewControllers([editViewController], animated: true)
                 }
             } else {
                 // Use the CIRectangleDetector on iOS 10 to attempt to find a rectangle from the initial image.
-                detectedQuad = CIRectangleDetector.rectangle(forImage: ciImage)
+                var detectedQuad = CIRectangleDetector.rectangle(forImage: ciImage)
                 detectedQuad?.reorganize()
+                
+                let editViewController = EditScanViewController(image: image, quad: detectedQuad, rotateImage: false)
+                editViewController.delegate = self
+                setViewControllers([editViewController], animated: false)
             }
         }
     }
@@ -96,6 +109,44 @@ public final class ImageScannerController: UINavigationController {
     
     override public var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         return .portrait
+    }
+    
+    //MARK: - ScannerViewControllerDelegate
+    func scannerViewControllerDidSelectToCancel(_ vc: ScannerViewController) {
+        guard let _ = imageScannerDelegate?.imageScannerControllerDidCancel(self) else { return }
+        
+        presentingViewController?.dismiss(animated: true, completion: nil)
+    }
+    
+    func scannerViewController(_ vc: ScannerViewController, didFailWithError error: Error) {
+        imageScannerDelegate?.imageScannerController(self, didFailWithError: error)
+    }
+    
+    func scannerViewController(_ vc: ScannerViewController, didCaptureImage image: UIImage, detectedRectangle: Quadrilateral?, quadrilateralViewBounds: CGSize) {
+        if allowsEditing {
+            let editVC = EditScanViewController(image: image, quad: detectedRectangle)
+            editVC.delegate = self
+            pushViewController(editVC, animated: false)
+        } else {
+            let imageResults = ImageScannerResults(picture: image, detectedRectangle: detectedRectangle, quadrilateralViewBounds: quadrilateralViewBounds)
+            imageScannerDelegate?.imageScannerController(self, didFinishScanningWithResults: imageResults)
+        }
+    }
+    
+    //MARK: - EditScanViewControllerDelegate
+    func editScanViewController(_ vc: EditScanViewController, didFailWithError error: Error) {
+        imageScannerDelegate?.imageScannerController(self, didFailWithError: error)
+    }
+    
+    func editScanViewController(_ vc: EditScanViewController, finishEditingWith results: ImageScannerResults) {
+        let reviewViewController = ReviewViewController(results: results)
+        reviewViewController.delegate = self
+        self.pushViewController(reviewViewController, animated: true)
+    }
+    
+    //MARK: - ReviewViewControllerDelegate
+    func reviewViewController(_ vc: ReviewViewController, didEndReviewWith results: ImageScannerResults) {
+        imageScannerDelegate?.imageScannerController(self, didFinishScanningWithResults: results)
     }
 }
 
@@ -117,4 +168,52 @@ public struct ImageScannerResults {
     /// The detected rectangle which was used to generate the `scannedImage`.
     public var detectedRectangle: Quadrilateral?
     
+    init(originalImage: UIImage, scannedImage: UIImage?, enhancedImage: UIImage?, doesUserPreferEnhancedImage: Bool, detectedRectangle: Quadrilateral?) {
+        self.originalImage = originalImage
+        self.scannedImage = scannedImage
+        self.enhancedImage = enhancedImage
+        self.doesUserPreferEnhancedImage = doesUserPreferEnhancedImage
+        self.detectedRectangle = detectedRectangle
+    }
+    
+    init(picture: UIImage, detectedRectangle: Quadrilateral?, quadrilateralViewBounds: CGSize) {
+        let finalImage: UIImage?
+        let enhancedImage: UIImage?
+        let scaledQuad = detectedRectangle?.scale(quadrilateralViewBounds, picture.size)
+        if let scaledQuad = scaledQuad,
+            let ciImage = CIImage(image: picture) {
+            
+            var cartesianScaledQuad = scaledQuad.toCartesian(withHeight: picture.size.height)
+            cartesianScaledQuad.reorganize()
+            
+            let filteredImage = ciImage.applyingFilter("CIPerspectiveCorrection", parameters: [
+                "inputTopLeft": CIVector(cgPoint: cartesianScaledQuad.bottomLeft),
+                "inputTopRight": CIVector(cgPoint: cartesianScaledQuad.bottomRight),
+                "inputBottomLeft": CIVector(cgPoint: cartesianScaledQuad.topLeft),
+                "inputBottomRight": CIVector(cgPoint: cartesianScaledQuad.topRight)
+                ])
+            
+            enhancedImage = filteredImage.applyingAdaptiveThreshold()?.withFixedOrientation()
+            
+            var uiImage: UIImage!
+            
+            // Let's try to generate the CGImage from the CIImage before creating a UIImage.
+            if let cgImage = CIContext(options: nil).createCGImage(filteredImage, from: filteredImage.extent) {
+                uiImage = UIImage(cgImage: cgImage)
+            } else {
+                uiImage = UIImage(ciImage: filteredImage, scale: 1.0, orientation: .up)
+            }
+            
+            finalImage = uiImage.withFixedOrientation()
+        } else {
+            finalImage = nil
+            enhancedImage = nil
+        }
+        
+        self.originalImage = picture
+        self.scannedImage = finalImage
+        self.enhancedImage = enhancedImage
+        self.doesUserPreferEnhancedImage = false
+        self.detectedRectangle = scaledQuad
+    }
 }
