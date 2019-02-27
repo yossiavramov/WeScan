@@ -43,28 +43,16 @@ public protocol ImageScannerControllerDelegate: NSObjectProtocol {
 public final class ImageScannerController: UINavigationController {
     
     /// The object that acts as the delegate of the `ImageScannerController`.
-    weak public var imageScannerDelegate: ImageScannerControllerDelegate?
+    public weak var imageScannerDelegate: ImageScannerControllerDelegate?
+    
+    public var allowsEditing: Bool = true
     
     // MARK: - Life Cycle
-    
-    /// A black UIView, used to quickly display a black screen when the shutter button is presseed.
-    internal let blackFlashView: UIView = {
-        let view = UIView()
-        view.backgroundColor = UIColor(white: 0.0, alpha: 0.5)
-        view.isHidden = true
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-    
     public required init(image: UIImage? = nil, delegate: ImageScannerControllerDelegate? = nil) {
         super.init(rootViewController: ScannerViewController())
         
+        setNavigationBarHidden(true, animated: false)
         self.imageScannerDelegate = delegate
-        
-        navigationBar.tintColor = .black
-        navigationBar.isTranslucent = false
-        self.view.addSubview(blackFlashView)
-        setupConstraints()
         
         // If an image was passed in by the host app (e.g. picked from the photo library), use it instead of the document scanner.
         if let image = image {
@@ -106,30 +94,9 @@ public final class ImageScannerController: UINavigationController {
         fatalError("init(coder:) has not been implemented")
     }
     
-    private func setupConstraints() {
-        let blackFlashViewConstraints = [
-            blackFlashView.topAnchor.constraint(equalTo: view.topAnchor),
-            blackFlashView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            view.bottomAnchor.constraint(equalTo: blackFlashView.bottomAnchor),
-            view.trailingAnchor.constraint(equalTo: blackFlashView.trailingAnchor)
-        ]
-        
-        NSLayoutConstraint.activate(blackFlashViewConstraints)
-    }
-    
     override public var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         return .portrait
     }
-    
-    internal func flashToBlack() {
-        view.bringSubviewToFront(blackFlashView)
-        blackFlashView.isHidden = false
-        let flashDuration = DispatchTime.now() + 0.05
-        DispatchQueue.main.asyncAfter(deadline: flashDuration) {
-            self.blackFlashView.isHidden = true
-        }
-    }
-    
 }
 
 /// Data structure containing information about a scan.
@@ -139,7 +106,7 @@ public struct ImageScannerResults {
     public var originalImage: UIImage
     
     /// The deskewed and cropped orignal image using the detected rectangle, without any filters.
-    public var scannedImage: UIImage
+    public var scannedImage: UIImage?
     
     /// The enhanced image, passed through an Adaptive Thresholding function. This image will always be grayscale and may not always be available.
     public var enhancedImage: UIImage?
@@ -148,6 +115,6 @@ public struct ImageScannerResults {
     public var doesUserPreferEnhancedImage: Bool
     
     /// The detected rectangle which was used to generate the `scannedImage`.
-    public var detectedRectangle: Quadrilateral
+    public var detectedRectangle: Quadrilateral?
     
 }

@@ -77,6 +77,8 @@
 		C31DD8A320C087D80072D439 /* ZoomGestureController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C31DD8A220C087D80072D439 /* ZoomGestureController.swift */; };
 		C3789C9B20CC69AD001B423F /* QuadrilateralViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3789C9A20CC69AD001B423F /* QuadrilateralViewTests.swift */; };
 		C3E2EB8E20B8970800A42E58 /* UIImage+Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3E2EB8D20B8970800A42E58 /* UIImage+Utils.swift */; };
+		E61EE44B222698EB00B4C471 /* ScannerOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E61EE44A222698EB00B4C471 /* ScannerOverlayView.swift */; };
+		E61EE44F2226AC5800B4C471 /* DefaultScannerOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E61EE44E2226AC5800B4C471 /* DefaultScannerOverlayView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -262,6 +264,8 @@
 		C31DD8A220C087D80072D439 /* ZoomGestureController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZoomGestureController.swift; sourceTree = "<group>"; };
 		C3789C9A20CC69AD001B423F /* QuadrilateralViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuadrilateralViewTests.swift; sourceTree = "<group>"; };
 		C3E2EB8D20B8970800A42E58 /* UIImage+Utils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImage+Utils.swift"; sourceTree = "<group>"; };
+		E61EE44A222698EB00B4C471 /* ScannerOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScannerOverlayView.swift; sourceTree = "<group>"; };
+		E61EE44E2226AC5800B4C471 /* DefaultScannerOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultScannerOverlayView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -464,6 +468,8 @@
 				A1F22EA2202DAA74001723AD /* RectangleFeaturesFunnel.swift */,
 				A165F67D2044741B002D5ED6 /* ShutterButton.swift */,
 				B9AAE88A219E6C0400205620 /* FocusRectangleView.swift */,
+				E61EE44A222698EB00B4C471 /* ScannerOverlayView.swift */,
+				E61EE44E2226AC5800B4C471 /* DefaultScannerOverlayView.swift */,
 			);
 			path = Scan;
 			sourceTree = "<group>";
@@ -800,6 +806,7 @@
 				A1DF90E420358CB100841A11 /* Transformable.swift in Sources */,
 				A1D4BD0C202C504F00FCDDEC /* ScannerViewController.swift in Sources */,
 				A11C5B9C2046A20C005075FE /* Error.swift in Sources */,
+				E61EE44B222698EB00B4C471 /* ScannerOverlayView.swift in Sources */,
 				B940E3DE21AE2A79003B3C0B /* CaptureSession+Focus.swift in Sources */,
 				B940E3DC21AE2A64003B3C0B /* CaptureSession+Flash.swift in Sources */,
 				A1D4BD15202C6CC000FCDDEC /* Array+Utils.swift in Sources */,
@@ -817,6 +824,7 @@
 				A1DF90A420331A0B00841A11 /* CIRectangleDetector.swift in Sources */,
 				A1DF90F62037187500841A11 /* UIImage+Orientation.swift in Sources */,
 				A1F22E99202C7B66001723AD /* QuadrilateralView.swift in Sources */,
+				E61EE44F2226AC5800B4C471 /* DefaultScannerOverlayView.swift in Sources */,
 				A194E97220431DD7003493E2 /* ReviewViewController.swift in Sources */,
 				B940E3DA21AE2919003B3C0B /* CaptureSession.swift in Sources */,
 			);
@@ -1022,11 +1030,11 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 74N8K5J2N7;
+				DEVELOPMENT_TEAM = 32ULNBM9L9;
 				INFOPLIST_FILE = WeScanSampleProject/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.WeTransfer.WeScanSampleProject;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yossi.WeScanExample;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = 1;
@@ -1039,11 +1047,11 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 74N8K5J2N7;
+				DEVELOPMENT_TEAM = 32ULNBM9L9;
 				INFOPLIST_FILE = WeScanSampleProject/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.WeTransfer.WeScanSampleProject;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yossi.WeScanExample;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = 1;

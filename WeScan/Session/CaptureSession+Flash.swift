@@ -7,39 +7,74 @@
 //
 
 import Foundation
+import AVFoundation
 
 /// Extension to CaptureSession to manage the device flashlight
 extension CaptureSession {
-    /// The possible states that the current device's flashlight can be in
-    enum FlashState {
-        case on
-        case off
-        case unavailable
-        case unknown
+    
+    public typealias FlashMode = AVCaptureDevice.TorchMode
+    
+    var flashMode: FlashMode? {
+        guard let device = device, device.isTorchAvailable else { return nil }
+        
+        switch device.torchMode {
+        case .auto: return .auto
+        case .on: return .on
+        case .off: return .off
+        }
     }
     
     /// Toggles the current device's flashlight on or off.
-    func toggleFlash() -> FlashState {
-        guard let device = device, device.isTorchAvailable else { return .unavailable }
+    @discardableResult
+    func toggleFlash() -> FlashMode? {
+        guard let device = device, device.isTorchAvailable else { return nil }
         
         do {
             try device.lockForConfiguration()
         } catch {
-            return .unknown
+            switch device.torchMode {
+            case .auto: return .auto
+            case .on: return .on
+            case .off: return .off
+            }
         }
         
         defer {
             device.unlockForConfiguration()
         }
         
-        if device.torchMode == .on {
+        switch device.torchMode {
+        case .auto:
+            device.torchMode = .on
+            return .on
+        case .on:
             device.torchMode = .off
             return .off
-        } else if device.torchMode == .off {
+        case .off:
             device.torchMode = .on
             return .on
         }
+    }
+    
+    @discardableResult
+    func setFlashMode(_ flashMode: FlashMode) -> FlashMode? {
+        guard let device = device, device.isTorchAvailable else { return nil }
         
-        return .unknown
+        do {
+            try device.lockForConfiguration()
+        } catch {
+            switch device.torchMode {
+            case .auto: return .auto
+            case .on: return .on
+            case .off: return .off
+            }
+        }
+        
+        defer {
+            device.unlockForConfiguration()
+        }
+        
+        device.torchMode = flashMode
+        return flashMode
     }
 }

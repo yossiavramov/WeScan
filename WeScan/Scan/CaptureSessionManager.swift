@@ -17,7 +17,7 @@ protocol RectangleDetectionDelegateProtocol: NSObjectProtocol {
     ///
     /// - Parameters:
     ///   - captureSessionManager: The `CaptureSessionManager` instance that started capturing a picture.
-    func didStartCapturingPicture(for captureSessionManager: CaptureSessionManager)
+    func captureSessionManagerDidStartCapturingPicture(_ captureSessionManager: CaptureSessionManager)
     
     /// Called when a quadrilateral has been detected.
     /// - Parameters:
@@ -247,7 +247,7 @@ extension CaptureSessionManager: AVCapturePhotoCaptureDelegate {
         
         isDetecting = false
         rectangleFunnel.currentAutoScanPassCount = 0
-        delegate?.didStartCapturingPicture(for: self)
+        delegate?.captureSessionManagerDidStartCapturingPicture(self)
         
         if let sampleBuffer = photoSampleBuffer,
             let imageData = AVCapturePhotoOutput.jpegPhotoDataRepresentation(forJPEGSampleBuffer: sampleBuffer, previewPhotoSampleBuffer: nil) {
@@ -271,7 +271,7 @@ extension CaptureSessionManager: AVCapturePhotoCaptureDelegate {
         
         isDetecting = false
         rectangleFunnel.currentAutoScanPassCount = 0
-        delegate?.didStartCapturingPicture(for: self)
+        delegate?.captureSessionManagerDidStartCapturingPicture(self)
         
         if let imageData = photo.fileDataRepresentation() {
             completeImageCapture(with: imageData)

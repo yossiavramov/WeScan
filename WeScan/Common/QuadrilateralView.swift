@@ -42,6 +42,35 @@ final class QuadrilateralView: UIView {
     /// The quadrilateral drawn on the view.
     private(set) var quad: Quadrilateral?
     
+    public var quadrilateralStrokeColor: UIColor? {
+        get {
+            guard let color = quadLayer.strokeColor else { return nil }
+            return UIColor(cgColor: color)
+        }
+        set {
+            quadLayer.strokeColor = newValue?.cgColor
+        }
+    }
+    
+    public var quadrilateralFillColor: UIColor? {
+        get {
+            return quadView.backgroundColor
+        }
+        set {
+            quadView.backgroundColor = newValue
+        }
+    }
+    
+    public var editDragCornerFillColor: UIColor? {
+        get { return topLeftCornerView.circleFillColor }
+        set { topLeftCornerView.circleFillColor = newValue }
+    }
+    
+    public var editDragCornerStrokeColor: UIColor? {
+        get { return topLeftCornerView.circleStrokeColor }
+        set { topLeftCornerView.circleStrokeColor = newValue }
+    }
+    
     public var editable = false {
         didSet {
             cornerViews(hidden: !editable)

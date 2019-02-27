@@ -17,6 +17,7 @@ final class FocusRectangleView: UIView {
         // Here, we create the frame to be the `originalSize`, with it's center being the `touchPoint`.
         self.init(frame: CGRect(x: touchPoint.x - (originalSize / 2), y: touchPoint.y - (originalSize / 2), width: originalSize, height: originalSize))
         
+        isUserInteractionEnabled = false
         backgroundColor = .clear
         layer.borderWidth = 2.0
         layer.cornerRadius = 6.0

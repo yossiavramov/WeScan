@@ -10,9 +10,9 @@ import UIKit
 import AVFoundation
 
 /// The `EditScanViewController` offers an interface for the user to edit the detected quadrilateral.
-final class EditScanViewController: UIViewController {
+public final class EditScanViewController: UIViewController {
     
-    lazy private var imageView: UIImageView = {
+    public lazy private(set) var imageView: UIImageView = {
         let imageView = UIImageView()
         imageView.clipsToBounds = true
         imageView.isOpaque = true
@@ -48,19 +48,38 @@ final class EditScanViewController: UIViewController {
     private var quadViewWidthConstraint = NSLayoutConstraint()
     private var quadViewHeightConstraint = NSLayoutConstraint()
     
-    // MARK: - Life Cycle
+    public var quadrilateralStrokeColor: UIColor? {
+        get { return quadView.quadrilateralStrokeColor }
+        set { quadView.quadrilateralStrokeColor = newValue }
+    }
     
-    init(image: UIImage, quad: Quadrilateral?, rotateImage: Bool = true) {
+    public var quadrilateralFillColor: UIColor? {
+        get { return quadView.quadrilateralFillColor }
+        set { quadView.quadrilateralFillColor = newValue }
+    }
+    
+    public var editDragCornerFillColor: UIColor? {
+        get { return quadView.editDragCornerFillColor }
+        set { quadView.editDragCornerFillColor = newValue }
+    }
+    
+    public var editDragCornerStrokeColor: UIColor? {
+        get { return quadView.editDragCornerStrokeColor }
+        set { quadView.editDragCornerStrokeColor = newValue }
+    }
+    
+    // MARK: - Life Cycle
+    public init(image: UIImage, quad: Quadrilateral?, rotateImage: Bool = true) {
         self.image = rotateImage ? image.applyingPortraitOrientation() : image
         self.quad = quad ?? EditScanViewController.defaultQuad(forImage: image)
         super.init(nibName: nil, bundle: nil)
     }
     
-    required init?(coder aDecoder: NSCoder) {
+    public required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    override func viewDidLoad() {
+    public override func viewDidLoad() {
         super.viewDidLoad()
         
         setupViews()
@@ -75,13 +94,18 @@ final class EditScanViewController: UIViewController {
         view.addGestureRecognizer(touchDown)
     }
     
-    override func viewDidLayoutSubviews() {
+    public override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(false, animated: true)
+    }
+    
+    public override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         adjustQuadViewConstraints()
         displayQuad()
     }
     
-    override func viewWillDisappear(_ animated: Bool) {
+    public override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         
         // Work around for an iOS 11.2 bug where UIBarButtonItems don't get back to their normal state after being pressed.
@@ -90,7 +114,6 @@ final class EditScanViewController: UIViewController {
     }
     
     // MARK: - Setups
-    
     private func setupViews() {
         view.addSubview(imageView)
         view.addSubview(quadView)
@@ -118,15 +141,15 @@ final class EditScanViewController: UIViewController {
     }
     
     // MARK: - Actions
-    
     @objc func pushReviewController() {
-        guard let quad = quadView.quad,
-            let ciImage = CIImage(image: image) else {
-                if let imageScannerController = navigationController as? ImageScannerController {
-                    let error = ImageScannerControllerError.ciImageCreation
-                    imageScannerController.imageScannerDelegate?.imageScannerController(imageScannerController, didFailWithError: error)
-                }
-                return
+        guard let quad = quadView.quad, let ciImage = CIImage(image: image) else {
+            
+            if let imageScannerController = navigationController as? ImageScannerController {
+                let error = ImageScannerControllerError.ciImageCreation
+                imageScannerController.imageScannerDelegate?.imageScannerController(imageScannerController, didFailWithError: error)
+            }
+            
+            return
         }
         
         let scaledQuad = quad.scale(quadView.bounds.size, image.size)
@@ -191,5 +214,4 @@ final class EditScanViewController: UIViewController {
         
         return quad
     }
-
 }

@@ -49,7 +49,6 @@ final class ReviewViewController: UIViewController {
     private let results: ImageScannerResults
     
     // MARK: - Life Cycle
-    
     init(results: ImageScannerResults) {
         self.results = results
         super.init(nibName: nil, bundle: nil)
@@ -74,6 +73,7 @@ final class ReviewViewController: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(false, animated: true)
         
         // We only show the toolbar (with the enhance button) if the enhanced image is available.
         if enhancedImageIsAvailable {
@@ -119,7 +119,7 @@ final class ReviewViewController: UIViewController {
         if enhancedImageIsAvailable, isCurrentlyDisplayingEnhancedImage {
             imageView.image = results.enhancedImage?.rotated(by: rotationAngle) ?? results.enhancedImage
         } else {
-            imageView.image = results.scannedImage.rotated(by: rotationAngle) ?? results.scannedImage
+            imageView.image = results.scannedImage?.rotated(by: rotationAngle) ?? results.scannedImage
         }
     }
     
@@ -150,7 +150,7 @@ final class ReviewViewController: UIViewController {
     @objc private func finishScan() {
         guard let imageScannerController = navigationController as? ImageScannerController else { return }
         var newResults = results
-        newResults.scannedImage = results.scannedImage.rotated(by: rotationAngle) ?? results.scannedImage
+        newResults.scannedImage = results.scannedImage?.rotated(by: rotationAngle) ?? results.scannedImage
         newResults.enhancedImage = results.enhancedImage?.rotated(by: rotationAngle) ?? results.enhancedImage
         newResults.doesUserPreferEnhancedImage = isCurrentlyDisplayingEnhancedImage
         imageScannerController.imageScannerDelegate?.imageScannerController(imageScannerController, didFinishScanningWithResults: newResults)

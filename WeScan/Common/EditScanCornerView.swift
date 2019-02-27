@@ -25,6 +25,26 @@ final class EditScanCornerView: UIView {
         return layer
     }()
     
+    var circleFillColor: UIColor? {
+        get {
+            guard let color = circleLayer.fillColor else { return nil }
+            return UIColor(cgColor: color)
+        }
+        set {
+            circleLayer.fillColor = newValue?.cgColor
+        }
+    }
+    
+    var circleStrokeColor: UIColor? {
+        get {
+            guard let color = circleLayer.strokeColor else { return nil }
+            return UIColor(cgColor: color)
+        }
+        set {
+            circleLayer.strokeColor = newValue?.cgColor
+        }
+    }
+    
     init(frame: CGRect, position: CornerPosition) {
         self.position = position
         super.init(frame: frame)
