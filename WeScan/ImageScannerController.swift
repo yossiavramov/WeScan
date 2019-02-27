@@ -55,7 +55,7 @@ public final class ImageScannerController: UINavigationController {
         self.imageScannerDelegate = delegate
         
         // If an image was passed in by the host app (e.g. picked from the photo library), use it instead of the document scanner.
-        if let image = image {
+        if let image = image?.rotateToImageOrientationUp() {
             
             var detectedQuad: Quadrilateral?
             

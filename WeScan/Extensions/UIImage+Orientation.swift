@@ -95,4 +95,13 @@ extension UIImage {
         }
     }
     
+    
+    func rotateToImageOrientationUp() -> UIImage {
+        guard self.imageOrientation != .up else { return self }
+        
+        let renderer = UIGraphicsImageRenderer(size: self.size, format: self.imageRendererFormat)
+        return renderer.image { context in
+            self.draw(in: CGRect(origin: .zero, size: self.size))
+        }
+    }
 }
