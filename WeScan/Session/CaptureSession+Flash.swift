@@ -14,7 +14,7 @@ extension CaptureSession {
     
     public typealias FlashMode = AVCaptureDevice.TorchMode
     
-    var flashMode: FlashMode? {
+    public var flashMode: FlashMode? {
         guard let device = device, device.isTorchAvailable else { return nil }
         
         switch device.torchMode {
@@ -26,7 +26,7 @@ extension CaptureSession {
     
     /// Toggles the current device's flashlight on or off.
     @discardableResult
-    func toggleFlash() -> FlashMode? {
+    public func toggleFlash() -> FlashMode? {
         guard let device = device, device.isTorchAvailable else { return nil }
         
         do {
@@ -57,7 +57,7 @@ extension CaptureSession {
     }
     
     @discardableResult
-    func setFlashMode(_ flashMode: FlashMode) -> FlashMode? {
+    public func setFlashMode(_ flashMode: FlashMode) -> FlashMode? {
         guard let device = device, device.isTorchAvailable else { return nil }
         
         do {

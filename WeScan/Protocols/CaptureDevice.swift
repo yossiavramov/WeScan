@@ -9,7 +9,7 @@
 import Foundation
 import AVFoundation
 
-protocol CaptureDevice: class {
+public protocol CaptureDevice: class {
     func unlockForConfiguration()
     func lockForConfiguration() throws
     

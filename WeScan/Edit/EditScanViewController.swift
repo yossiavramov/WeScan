@@ -9,7 +9,7 @@
 import UIKit
 import AVFoundation
 
-protocol EditScanViewControllerDelegate : NSObjectProtocol {
+public protocol EditScanViewControllerDelegate : NSObjectProtocol {
     func editScanViewController(_ vc: EditScanViewController, didFailWithError error: Error)
     func editScanViewController(_ vc: EditScanViewController, finishEditingWith results: ImageScannerResults)
 }
@@ -17,7 +17,7 @@ protocol EditScanViewControllerDelegate : NSObjectProtocol {
 /// The `EditScanViewController` offers an interface for the user to edit the detected quadrilateral.
 public final class EditScanViewController: UIViewController {
     
-    weak var delegate: EditScanViewControllerDelegate?
+    public weak var delegate: EditScanViewControllerDelegate?
     
     public lazy private(set) var imageView: UIImageView = {
         let imageView = UIImageView()

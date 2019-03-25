@@ -9,7 +9,7 @@
 import UIKit
 import WeScan
 
-final class HomeViewController: UIViewController {
+final class HomeViewController: UIViewController, ImageScannerControllerDelegate {
     
     lazy private var logoImageView: UIImageView = {
         let image = UIImage(named: "WeScanLogo")
@@ -116,6 +116,8 @@ final class HomeViewController: UIViewController {
     
     func scanImage() {
         let scannerViewController = ImageScannerController(delegate: self)
+//        scannerViewController.allowsEditing = false
+        scannerViewController.delegate = self
         present(scannerViewController, animated: true)
     }
     
@@ -125,7 +127,6 @@ final class HomeViewController: UIViewController {
         imagePicker.sourceType = .photoLibrary
         present(imagePicker, animated: true)
     }
-    
 }
 
 extension HomeViewController: ImageScannerControllerDelegate {
@@ -134,7 +135,10 @@ extension HomeViewController: ImageScannerControllerDelegate {
     }
     
     func imageScannerController(_ scanner: ImageScannerController, didFinishScanningWithResults results: ImageScannerResults) {
-        scanner.dismiss(animated: true, completion: nil)
+        scanner.dismiss(animated: true, completion: {
+            let activityVC = UIActivityViewController(activityItems: [(results.scannedImage ?? results.originalImage)], applicationActivities: nil)
+            self.present(activityVC, animated: true, completion: nil)
+        })
     }
     
     func imageScannerControllerDidCancel(_ scanner: ImageScannerController) {

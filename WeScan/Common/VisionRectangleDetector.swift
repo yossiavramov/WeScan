@@ -11,14 +11,14 @@ import Foundation
 
 /// Class used to detect rectangles from an image.
 @available(iOS 11.0, *)
-struct VisionRectangleDetector {
+public struct VisionRectangleDetector {
     
     /// Detects rectangles from the given image on iOS 11 and above.
     ///
     /// - Parameters:
     ///   - image: The image to detect rectangles on.
     /// - Returns: The biggest rectangle detected on the image.
-    static func rectangle(forImage image: CIImage, completion: @escaping ((Quadrilateral?) -> Void)) {
+    public static func rectangle(forImage image: CIImage, completion: @escaping ((Quadrilateral?) -> Void)) {
       
         let imageRequestHandler = VNImageRequestHandler(ciImage: image, options: [:])
 

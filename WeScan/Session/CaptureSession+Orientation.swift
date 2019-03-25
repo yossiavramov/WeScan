@@ -13,7 +13,7 @@ import Foundation
 /// Which works even if the user has enabled portrait lock.
 extension CaptureSession {
     /// Detect the current orientation of the device with CoreMotion and use it to set the `editImageOrientation`.
-    func setImageOrientation() {
+    public func setImageOrientation() {
         let motion = CMMotionManager()
         
         /// This value should be 0.2, but since we only need one cycle (and stop updates immediately),

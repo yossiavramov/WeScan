@@ -10,7 +10,7 @@ import UIKit
 import AVFoundation
 
 /// Simple enum to keep track of the position of the corners of a quadrilateral.
-enum CornerPosition {
+public enum CornerPosition : Int {
     case topLeft
     case topRight
     case bottomRight
@@ -18,7 +18,7 @@ enum CornerPosition {
 }
 
 /// The `QuadrilateralView` is a simple `UIView` subclass that can draw a quadrilateral, and optionally edit it.
-final class QuadrilateralView: UIView {
+public final class QuadrilateralView: UIView {
     
     private let quadLayer: CAShapeLayer = {
         let layer = CAShapeLayer()
@@ -40,7 +40,7 @@ final class QuadrilateralView: UIView {
     }()
     
     /// The quadrilateral drawn on the view.
-    private(set) var quad: Quadrilateral?
+    public private(set) var quad: Quadrilateral?
     
     public var quadrilateralStrokeColor: UIColor? {
         get {
@@ -63,12 +63,22 @@ final class QuadrilateralView: UIView {
     
     public var editDragCornerFillColor: UIColor? {
         get { return topLeftCornerView.circleFillColor }
-        set { topLeftCornerView.circleFillColor = newValue }
+        set {
+            topLeftCornerView.circleFillColor = newValue
+            topRightCornerView.circleFillColor = newValue
+            bottomRightCornerView.circleFillColor = newValue
+            bottomLeftCornerView.circleFillColor = newValue
+        }
     }
     
     public var editDragCornerStrokeColor: UIColor? {
         get { return topLeftCornerView.circleStrokeColor }
-        set { topLeftCornerView.circleStrokeColor = newValue }
+        set {
+            topLeftCornerView.circleStrokeColor = newValue
+            topRightCornerView.circleStrokeColor = newValue
+            bottomRightCornerView.circleStrokeColor = newValue
+            bottomLeftCornerView.circleStrokeColor = newValue
+        }
     }
     
     public var editable = false {
@@ -114,7 +124,7 @@ final class QuadrilateralView: UIView {
     
     // MARK: - Life Cycle
     
-    override init(frame: CGRect) {
+    public override init(frame: CGRect) {
         super.init(frame: frame)
         commonInit()
     }
@@ -166,7 +176,7 @@ final class QuadrilateralView: UIView {
     ///
     /// - Parameters:
     ///   - quad: The quadrilateral to draw on the view. It should be in the coordinates of the current `QuadrilateralView` instance.
-    func drawQuadrilateral(quad: Quadrilateral, animated: Bool) {
+    public func drawQuadrilateral(quad: Quadrilateral, animated: Bool) {
         self.quad = quad
         drawQuad(quad, animated: animated)
         if editable {
@@ -201,14 +211,14 @@ final class QuadrilateralView: UIView {
         bottomRightCornerView.center = quad.bottomRight
     }
     
-    func removeQuadrilateral() {
+    public func removeQuadrilateral() {
         quadLayer.path = nil
         quadLayer.isHidden = true
     }
     
     // MARK: - Actions
     
-    func moveCorner(cornerView: EditScanCornerView, atPoint point: CGPoint) {
+    public func moveCorner(cornerView: EditScanCornerView, atPoint point: CGPoint) {
         guard let quad = quad else {
             return
         }
@@ -240,7 +250,7 @@ final class QuadrilateralView: UIView {
         cornerView.highlightWithImage(image)
     }
     
-    func resetHighlightedCornerViews() {
+    public func resetHighlightedCornerViews() {
         isHighlighted = false
         resetHighlightedCornerViews(cornerViews: [topLeftCornerView, topRightCornerView, bottomLeftCornerView, bottomRightCornerView])
     }
@@ -312,7 +322,7 @@ final class QuadrilateralView: UIView {
         return quad
     }
     
-    func cornerViewForCornerPosition(position: CornerPosition) -> EditScanCornerView {
+    public func cornerViewForCornerPosition(position: CornerPosition) -> EditScanCornerView {
         switch position {
         case .topLeft:
             return topLeftCornerView

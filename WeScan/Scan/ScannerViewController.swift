@@ -9,14 +9,14 @@
 import UIKit
 import AVFoundation
 
-protocol ScannerViewControllerDelegate : NSObjectProtocol {
+public protocol ScannerViewControllerDelegate : NSObjectProtocol {
     func scannerViewControllerDidSelectToCancel(_ vc: ScannerViewController)
     func scannerViewController(_ vc: ScannerViewController, didFailWithError error: Error)
-    func scannerViewController(_ vc: ScannerViewController, didCaptureImage image: UIImage, detectedRectangle: Quadrilateral?, quadrilateralViewBounds: CGSize)
+    func scannerViewController(_ vc: ScannerViewController, didCaptureImage image: UIImage, detectedRectangle: Quadrilateral?)
 }
 
 /// The `ScannerViewController` offers an interface to give feedback to the user regarding quadrilaterals that are detected. It also gives the user the opportunity to capture an image with a detected rectangle.
-final class ScannerViewController: UIViewController {
+public final class ScannerViewController: UIViewController {
     
     private var captureSessionManager: CaptureSessionManager?
     private let videoPreviewLayer = AVCaptureVideoPreviewLayer()
@@ -32,7 +32,7 @@ final class ScannerViewController: UIViewController {
         return view
     }()
     
-    weak var delegate: ScannerViewControllerDelegate?
+    public weak var delegate: ScannerViewControllerDelegate?
     
     public var overlayView: ScannerOverlayView? {
         didSet {
@@ -48,6 +48,8 @@ final class ScannerViewController: UIViewController {
             }
             
             let overlayView = self.overlayView!
+            overlayView.scannerController = self
+            
             if overlayView.superview !== self {
                 overlayView.frame = view.bounds
                 overlayView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -55,20 +57,18 @@ final class ScannerViewController: UIViewController {
                 overlayView.removeFromSuperview()
                 view.addSubview(overlayView)
                 if #available(iOS 11.0, *) {
-                    overlayView.prepareForPresenting()
+                    overlayView.prepareForPresenting(navigationItem: self.navigationItem)
                 } else {
-                    overlayView.prepareForPresenting(topLayoutGuide: self.topLayoutGuide, bottomLayoutGuide: self.bottomLayoutGuide)
+                    overlayView.prepareForPresenting(topLayoutGuide: self.topLayoutGuide, bottomLayoutGuide: self.bottomLayoutGuide, navigationItem: self.navigationItem)
                 }
                 
                 view.layoutIfNeeded()
             }
-            
-            overlayView.scannerController = self
         }
     }
     
     // MARK: - Life Cycle
-    override func viewDidLoad() {
+    public override func viewDidLoad() {
         super.viewDidLoad()
         
         view.backgroundColor = UIColor.black
@@ -86,11 +86,9 @@ final class ScannerViewController: UIViewController {
         NotificationCenter.default.addObserver(self, selector: #selector(subjectAreaDidChange), name: NSNotification.Name.AVCaptureDeviceSubjectAreaDidChange, object: nil)
     }
     
-    override func viewWillAppear(_ animated: Bool) {
+    public override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         setNeedsStatusBarAppearanceUpdate()
-        
-        navigationController?.setNavigationBarHidden(true, animated: animated)
         
         CaptureSession.current.isEditing = false
         quadView.removeQuadrilateral()
@@ -98,16 +96,21 @@ final class ScannerViewController: UIViewController {
         UIApplication.shared.isIdleTimerDisabled = true
     }
     
-    override func viewDidLayoutSubviews() {
+    public override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         videoPreviewLayer.frame = view.layer.bounds
     }
     
-    override func viewWillDisappear(_ animated: Bool) {
+    public override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         UIApplication.shared.isIdleTimerDisabled = false
         
         setFlashMode(.off)
+    }
+    
+    public override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        captureSessionManager?.stop()
     }
     
     // MARK: - Setups
@@ -140,7 +143,7 @@ final class ScannerViewController: UIViewController {
         overlayView?.stopFocusingOnSubjectArea()
     }
     
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+    public override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesBegan(touches, with: event)
         
         guard  let touch = touches.first else { return }
@@ -164,35 +167,27 @@ final class ScannerViewController: UIViewController {
 }
 
 extension ScannerViewController : ScannerController {
-    var isAutoScanEnabled: Bool {
+    public var isAutoScanEnabled: Bool {
         get { return CaptureSession.current.isAutoScanEnabled }
         set { CaptureSession.current.isAutoScanEnabled = newValue }
     }
     
-    var isFlashEnabled: Bool { return UIImagePickerController.isFlashAvailable(for: .rear) }
-    var flashMode: ScannerOverlayView.FlashMode? { return CaptureSession.current.flashMode }
+    public var isFlashEnabled: Bool { return UIImagePickerController.isFlashAvailable(for: .rear) }
+    public var flashMode: ScannerOverlayView.FlashMode? { return CaptureSession.current.flashMode }
     
     @discardableResult
-    func toggleFlash() -> Bool {
+    public func toggleFlash() -> Bool {
         return CaptureSession.current.toggleFlash() != nil
     }
     
     @discardableResult
-    func setFlashMode(_ flashMode: ScannerOverlayView.FlashMode) -> Bool {
+    public func setFlashMode(_ flashMode: ScannerOverlayView.FlashMode) -> Bool {
         let currentFlashMode = CaptureSession.current.flashMode
         let newFlashMode = CaptureSession.current.setFlashMode(flashMode)
         return currentFlashMode == newFlashMode
     }
     
-    func setCustomScanRectangleView(_ view: UIView) {
-        //TODO:
-    }
-    
-    func useDefaultScanRectangleView(withColor backgroundColor: UIColor?, cornerRadius: CGFloat, borderColor: UIColor?, borderWidth: CGFloat) {
-        //TODO:
-    }
-    
-    func takePicture() {
+    public func takePicture() {
         if !(overlayView?.canHandleTakeImageAnimation ?? false) {
             blinkerView.isHidden = false
             view.addSubview(blinkerView)
@@ -206,7 +201,7 @@ extension ScannerViewController : ScannerController {
         captureSessionManager?.capturePhoto()
     }
     
-    func dismissImagePicker(cancelledByUser: Bool) {
+    public func dismissImagePicker(cancelledByUser: Bool) {
         if cancelledByUser {
             delegate?.scannerViewControllerDidSelectToCancel(self)
         } else {
@@ -214,30 +209,30 @@ extension ScannerViewController : ScannerController {
         }
     }
     
-    var videoFrame: CGRect {
+    public var videoFrame: CGRect {
         get { return videoPreviewLayer.frame }
         set { videoPreviewLayer.frame = newValue }
     }
 }
 
 extension ScannerViewController: RectangleDetectionDelegateProtocol {
-    func captureSessionManagerDidStartCapturingPicture(_ captureSessionManager: CaptureSessionManager) {
+    public func captureSessionManagerDidStartCapturingPicture(_ captureSessionManager: CaptureSessionManager) {
         overlayView?.willStartCapturingPicture()
     }
     
-    func captureSessionManager(_ captureSessionManager: CaptureSessionManager, didFailWithError error: Error) {
+    public func captureSessionManager(_ captureSessionManager: CaptureSessionManager, didFailWithError error: Error) {
         
         overlayView?.didFailedToCapturePicture(with: error)
         
         delegate?.scannerViewController(self, didFailWithError: error)
     }
     
-    func captureSessionManager(_ captureSessionManager: CaptureSessionManager, didCapturePicture picture: UIImage, withQuad quad: Quadrilateral?) {
+    public func captureSessionManager(_ captureSessionManager: CaptureSessionManager, didCapturePicture picture: UIImage, withQuad quad: Quadrilateral?) {
         overlayView?.didCapturePicture(picture: picture, withQuad: quad)
-        delegate?.scannerViewController(self, didCaptureImage: picture, detectedRectangle: quad, quadrilateralViewBounds: quadView.bounds.size)
+        delegate?.scannerViewController(self, didCaptureImage: picture, detectedRectangle: quad)
     }
     
-    func captureSessionManager(_ captureSessionManager: CaptureSessionManager, didDetectQuad quad: Quadrilateral?, _ imageSize: CGSize) {
+    public func captureSessionManager(_ captureSessionManager: CaptureSessionManager, didDetectQuad quad: Quadrilateral?, _ imageSize: CGSize) {
         guard let quad = quad else {
             // If no quad has been detected, we remove the currently displayed on on the quadView.
             quadView.removeQuadrilateral()

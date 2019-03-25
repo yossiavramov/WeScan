@@ -14,18 +14,18 @@ import Vision
 public struct Quadrilateral: Transformable {
     
     /// A point that specifies the top left corner of the quadrilateral.
-    var topLeft: CGPoint
+    public internal(set) var topLeft: CGPoint
     
     /// A point that specifies the top right corner of the quadrilateral.
-    var topRight: CGPoint
+    public internal(set) var topRight: CGPoint
     
     /// A point that specifies the bottom right corner of the quadrilateral.
-    var bottomRight: CGPoint
+    public internal(set) var bottomRight: CGPoint
     
     /// A point that specifies the bottom left corner of the quadrilateral.
-    var bottomLeft: CGPoint
+    public internal(set) var bottomLeft: CGPoint
     
-    init(rectangleFeature: CIRectangleFeature) {
+    public init(rectangleFeature: CIRectangleFeature) {
         self.topLeft = rectangleFeature.topLeft
         self.topRight = rectangleFeature.topRight
         self.bottomLeft = rectangleFeature.bottomLeft
@@ -33,14 +33,14 @@ public struct Quadrilateral: Transformable {
     }
 
     @available(iOS 11.0, *)
-    init(rectangleObservation: VNRectangleObservation) {
+    public init(rectangleObservation: VNRectangleObservation) {
         self.topLeft = rectangleObservation.topLeft
         self.topRight = rectangleObservation.topRight
         self.bottomLeft = rectangleObservation.bottomLeft
         self.bottomRight = rectangleObservation.bottomRight
     }
 
-    init(topLeft: CGPoint, topRight: CGPoint, bottomRight: CGPoint, bottomLeft: CGPoint) {
+    public init(topLeft: CGPoint, topRight: CGPoint, bottomRight: CGPoint, bottomLeft: CGPoint) {
         self.topLeft = topLeft
         self.topRight = topRight
         self.bottomRight = bottomRight
@@ -74,7 +74,7 @@ public struct Quadrilateral: Transformable {
     /// - Parameters:
     ///   - t: the transform to apply.
     /// - Returns: The transformed quadrilateral.
-    func applying(_ transform: CGAffineTransform) -> Quadrilateral {
+    public func applying(_ transform: CGAffineTransform) -> Quadrilateral {
         let quadrilateral = Quadrilateral(topLeft: topLeft.applying(transform), topRight: topRight.applying(transform), bottomRight: bottomRight.applying(transform), bottomLeft: bottomLeft.applying(transform))
         
         return quadrilateral
@@ -143,7 +143,7 @@ public struct Quadrilateral: Transformable {
     ///   - toSize: The size to scale the quadrilateral to.
     ///   - rotationAngle: The optional rotation to apply.
     /// - Returns: The newly scaled and potentially rotated quadrilateral.
-    func scale(_ fromSize: CGSize, _ toSize: CGSize, withRotationAngle rotationAngle: CGFloat = 0.0) -> Quadrilateral {
+    public func scale(_ fromSize: CGSize, _ toSize: CGSize, withRotationAngle rotationAngle: CGFloat = 0.0) -> Quadrilateral {
         var invertedfromSize = fromSize
         let rotated = rotationAngle != 0.0
         
@@ -215,5 +215,23 @@ extension Quadrilateral {
 extension Quadrilateral: Equatable {
     public static func == (lhs: Quadrilateral, rhs: Quadrilateral) -> Bool {
         return lhs.topLeft == rhs.topLeft && lhs.topRight == rhs.topRight && lhs.bottomRight == rhs.bottomRight && lhs.bottomLeft == rhs.bottomLeft
+    }
+}
+
+extension Quadrilateral {
+    public static func rectangle(forImage image: CIImage, reorganize: Bool, completion: @escaping ((Quadrilateral?) -> Void)) {
+        if #available(iOS 11.0, *) {
+            VisionRectangleDetector.rectangle(forImage: image, completion: { quad in
+                var detectedQuad = quad
+                if reorganize { detectedQuad?.reorganize() }
+                completion(detectedQuad)
+            })
+        } else {
+            CIRectangleDetector.rectangle(forImage: image, completion: { quad in
+                var detectedQuad = quad
+                if reorganize { detectedQuad?.reorganize() }
+                completion(detectedQuad)
+            })
+        }
     }
 }

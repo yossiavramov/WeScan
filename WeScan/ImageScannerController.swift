@@ -112,40 +112,40 @@ public final class ImageScannerController: UINavigationController, ScannerViewCo
     }
     
     //MARK: - ScannerViewControllerDelegate
-    func scannerViewControllerDidSelectToCancel(_ vc: ScannerViewController) {
+    public func scannerViewControllerDidSelectToCancel(_ vc: ScannerViewController) {
         guard let _ = imageScannerDelegate?.imageScannerControllerDidCancel(self) else { return }
         
         presentingViewController?.dismiss(animated: true, completion: nil)
     }
     
-    func scannerViewController(_ vc: ScannerViewController, didFailWithError error: Error) {
+    public func scannerViewController(_ vc: ScannerViewController, didFailWithError error: Error) {
         imageScannerDelegate?.imageScannerController(self, didFailWithError: error)
     }
     
-    func scannerViewController(_ vc: ScannerViewController, didCaptureImage image: UIImage, detectedRectangle: Quadrilateral?, quadrilateralViewBounds: CGSize) {
+    public func scannerViewController(_ vc: ScannerViewController, didCaptureImage image: UIImage, detectedRectangle: Quadrilateral?) {
         if allowsEditing {
             let editVC = EditScanViewController(image: image, quad: detectedRectangle)
             editVC.delegate = self
             pushViewController(editVC, animated: false)
         } else {
-            let imageResults = ImageScannerResults(picture: image, detectedRectangle: detectedRectangle, quadrilateralViewBounds: quadrilateralViewBounds)
+            let imageResults = ImageScannerResults(picture: image, detectedRectangle: detectedRectangle)
             imageScannerDelegate?.imageScannerController(self, didFinishScanningWithResults: imageResults)
         }
     }
     
     //MARK: - EditScanViewControllerDelegate
-    func editScanViewController(_ vc: EditScanViewController, didFailWithError error: Error) {
+    public func editScanViewController(_ vc: EditScanViewController, didFailWithError error: Error) {
         imageScannerDelegate?.imageScannerController(self, didFailWithError: error)
     }
     
-    func editScanViewController(_ vc: EditScanViewController, finishEditingWith results: ImageScannerResults) {
+    public func editScanViewController(_ vc: EditScanViewController, finishEditingWith results: ImageScannerResults) {
         let reviewViewController = ReviewViewController(results: results)
         reviewViewController.delegate = self
         self.pushViewController(reviewViewController, animated: true)
     }
     
     //MARK: - ReviewViewControllerDelegate
-    func reviewViewController(_ vc: ReviewViewController, didEndReviewWith results: ImageScannerResults) {
+    public func reviewViewController(_ vc: ReviewViewController, didEndReviewWith results: ImageScannerResults) {
         imageScannerDelegate?.imageScannerController(self, didFinishScanningWithResults: results)
     }
 }
@@ -168,7 +168,7 @@ public struct ImageScannerResults {
     /// The detected rectangle which was used to generate the `scannedImage`.
     public var detectedRectangle: Quadrilateral?
     
-    init(originalImage: UIImage, scannedImage: UIImage?, enhancedImage: UIImage?, doesUserPreferEnhancedImage: Bool, detectedRectangle: Quadrilateral?) {
+    public init(originalImage: UIImage, scannedImage: UIImage?, enhancedImage: UIImage?, doesUserPreferEnhancedImage: Bool, detectedRectangle: Quadrilateral?) {
         self.originalImage = originalImage
         self.scannedImage = scannedImage
         self.enhancedImage = enhancedImage
@@ -176,10 +176,21 @@ public struct ImageScannerResults {
         self.detectedRectangle = detectedRectangle
     }
     
-    init(picture: UIImage, detectedRectangle: Quadrilateral?, quadrilateralViewBounds: CGSize) {
+    public init(picture: UIImage) {
+        self.originalImage = picture
+        self.doesUserPreferEnhancedImage = false
+    }
+    
+    public init(picture: UIImage, detectedRectangle: Quadrilateral?, quadrilateralViewBounds: CGSize? = nil) {
         let finalImage: UIImage?
         let enhancedImage: UIImage?
-        let scaledQuad = detectedRectangle?.scale(quadrilateralViewBounds, picture.size)
+        let scaledQuad: Quadrilateral?
+        if let quadrilateralViewBounds = quadrilateralViewBounds {
+            scaledQuad = detectedRectangle?.scale(quadrilateralViewBounds, picture.size)
+        } else {
+            scaledQuad = detectedRectangle
+        }
+        
         if let scaledQuad = scaledQuad,
             let ciImage = CIImage(image: picture) {
             

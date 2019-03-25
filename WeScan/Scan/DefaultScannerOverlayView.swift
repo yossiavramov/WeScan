@@ -9,6 +9,8 @@
 import UIKit
 
 internal final class DefaultScannerOverlayView : ScannerOverlayView {
+    private var topBar: UIView!
+    
     lazy private var shutterButton: ShutterButton = {
         let button = ShutterButton()
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -140,6 +142,13 @@ internal final class DefaultScannerOverlayView : ScannerOverlayView {
         removeFocusRectangleIfNeeded(animated: true)
     }
     
+    @available(iOS, introduced: 10.0, deprecated: 11.0)
+    override func prepareForPresenting(topLayoutGuide: UILayoutSupport, bottomLayoutGuide: UILayoutSupport, navigationItem: UINavigationItem) {
+        super.prepareForPresenting(topLayoutGuide: topLayoutGuide, bottomLayoutGuide: bottomLayoutGuide, navigationItem: navigationItem)
+        
+        topBar.bottomAnchor.constraint(equalTo: topLayoutGuide.bottomAnchor, constant: 44).isActive = true
+    }
+    
     //MARK: - Private
     private func setupUI() {
         guard shutterButton.superview == nil else { return }
@@ -161,6 +170,7 @@ internal final class DefaultScannerOverlayView : ScannerOverlayView {
         addSubview(cancelButton)
         addSubview(shutterButton)
         addSubview(activityIndicator)
+        self.topBar = topBar
         
         topBar.leadingAnchor.constraint(equalTo: self.leadingAnchor).isActive = true
         topBar.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
@@ -176,8 +186,6 @@ internal final class DefaultScannerOverlayView : ScannerOverlayView {
             self.safeAreaLayoutGuide.bottomAnchor.constraint(equalTo: cancelButton.bottomAnchor, constant: (65.0 / 2) - 10.0).isActive = true
             self.safeAreaLayoutGuide.bottomAnchor.constraint(equalTo: shutterButton.bottomAnchor, constant: 8.0).isActive = true
         } else {
-            //TODO: topBar.bottomAnchor.constraint(equalTo: topLayoutGuide.bottomAnchor, constant: 44).isActive = true
-            
             flashButton.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 16).isActive = true
             self.trailingAnchor.constraint(equalTo: autoScanButton.trailingAnchor, constant: 16).isActive = true
             
@@ -194,6 +202,13 @@ internal final class DefaultScannerOverlayView : ScannerOverlayView {
         activityIndicator.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
     }
     
+    override func willMove(toWindow newWindow: UIWindow?) {
+        super.willMove(toWindow: newWindow)
+        if let _ = newWindow {
+            viewController?.navigationController?.setNavigationBarHidden(true, animated: true)
+        }
+    }
+    
     private func removeFocusRectangleIfNeeded(animated: Bool) {
         guard let focusRectangle = focusRectangle else { return }
         
@@ -207,5 +222,16 @@ internal final class DefaultScannerOverlayView : ScannerOverlayView {
         } else {
             focusRectangle.removeFromSuperview()
         }
+    }
+}
+
+extension UIView {
+    fileprivate var viewController: UIViewController? {
+        var next = self.next
+        while next != nil && !(next is UIViewController) {
+            next = next!.next
+        }
+        
+        return next as? UIViewController
     }
 }

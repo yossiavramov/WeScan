@@ -22,9 +22,6 @@ public protocol ScannerController : NSObjectProtocol {
     @discardableResult
     func setFlashMode(_ flashMode: ScannerOverlayView.FlashMode) -> Bool
     
-    func setCustomScanRectangleView(_ view: UIView)
-    func useDefaultScanRectangleView(withColor backgroundColor: UIColor?, cornerRadius: CGFloat, borderColor: UIColor?, borderWidth: CGFloat)
-    
     func takePicture()
     
     func dismissImagePicker(cancelledByUser: Bool)
@@ -32,37 +29,35 @@ public protocol ScannerController : NSObjectProtocol {
     var videoFrame: CGRect { get set }
 }
 
-public class ScannerOverlayView : UIView {
+open class ScannerOverlayView : UIView {
     
     public typealias FlashMode = AVCaptureDevice.TorchMode
     
-    public internal(set) weak var scannerController: ScannerController?
+    open internal(set) weak var scannerController: ScannerController?
     
     //MARK: - Overrides
-    public override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+    open override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
         let hitView = super.hitTest(point, with: event)
         return hitView === self ? nil : hitView
     }
     
-    
-    
     //MARK: - Prepare for presenting
     @available(iOS, introduced: 10.0, deprecated: 11.0, message: "Use prepareForPresenting() instead of prepareForPresenting(topLayoutGuide:bottomLayoutGuide)")
-    public func prepareForPresenting(topLayoutGuide: UILayoutSupport, bottomLayoutGuide: UILayoutSupport) { }
+    open func prepareForPresenting(topLayoutGuide: UILayoutSupport, bottomLayoutGuide: UILayoutSupport, navigationItem: UINavigationItem) { }
     
     @available(iOS 11.0, *)
-    public func prepareForPresenting() { }
+    open func prepareForPresenting(navigationItem: UINavigationItem) { }
     
     //MARK: - Focusing on subject area
-    public func startFocusingOnSubjectArea(in point: CGPoint) { }
-    public func stopFocusingOnSubjectArea() { }
+    open func startFocusingOnSubjectArea(in point: CGPoint) { }
+    open func stopFocusingOnSubjectArea() { }
     
     //MARK: - Capturing picture
-    public var canHandleTakeImageAnimation: Bool { return false }
+    open var canHandleTakeImageAnimation: Bool { return false }
     
-    public func willStartCapturingPicture() { }
+    open func willStartCapturingPicture() { }
     
-    public func didCapturePicture(picture: UIImage, withQuad quad: Quadrilateral?) { }
+    open func didCapturePicture(picture: UIImage, withQuad quad: Quadrilateral?) { }
     
-    public func didFailedToCapturePicture(with error: Error) { }
+    open func didFailedToCapturePicture(with error: Error) { }
 }

@@ -11,7 +11,7 @@ import XCTest
 
 final class FocusRectangleViewTests: XCTestCase {
     
-    func testFocusRectangleIsRemovedCorrectly() {
+//    func testFocusRectangleIsRemovedCorrectly() {
 //        let hostView = UIView()
 //        let session = CaptureSession.current
 //        
@@ -20,6 +20,6 @@ final class FocusRectangleViewTests: XCTestCase {
 //        session.removeFocusRectangleIfNeeded(focusRectangle, animated: false)
 //        
 //        XCTAssertTrue(focusRectangle.superview == nil)
-    }
+//    }
     
 }
